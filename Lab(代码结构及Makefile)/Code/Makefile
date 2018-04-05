@@ -7,7 +7,7 @@ FLEX = flex
 BISON = bison
 CFLAGS = -std=c99
 
-# 编译目标：src目录下的所有.c文件
+# 编译目标：src目录下的扄1�7朄1�7.c文件
 CFILES = $(shell find ./ -name "*.c")
 OBJS = $(CFILES:.c=.o)
 LFILE = $(shell find ./ -name "*.l")
@@ -18,7 +18,7 @@ LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
 parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -ll -ly
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)

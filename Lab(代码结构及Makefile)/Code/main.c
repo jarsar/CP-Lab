@@ -13,6 +13,3 @@ int main(int argc,char** argv)
   yyparse();
   return 0;
 }
-yyerror(char *msg){
-  fprintf(stderr, "error :%s\n", msg);
-}
