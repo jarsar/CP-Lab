@@ -1,13 +1,12 @@
 %{
   #include<stdio.h>
   #include"G_tree.h"
-  #include"lex.yy.c"
+  int errorJudge = 0;
 %}
 
 %union {
-    int iVal;
-    double dVal;
-    struct TreeNode node;
+    double dnum;
+    struct TreeData node;
 }
 
 /*declared tokens*/
@@ -39,482 +38,483 @@
 %%
 /*High-level Definitions*/
 Program : ExtDefList {
-    struct TreeNode *temp;
-    temp=bindSibling(&$1,NULL);
+    struct TreeData *temp;
+    temp=buildNode(&$1,NULL);
     $$.token="Program";
-    temp=bindParent(&$$,temp);
+    temp=buildParent(&$$,temp);
     if(errorJudge==0){
-      traverse(temp,0);
+      traverse(temp,0,0);
     }
 }
   ;
 ExtDefList : ExtDef ExtDefList {
-  struct TreeNode *temp;
-  temp=bindSibling(&$2,NULL);
-  temp=bindSibling(&$1,temp);
+  struct TreeData *temp;
+  temp=buildNode(&$2,NULL);
+  temp=buildNode(&$1,temp);
   $$.token="ExtDefList";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
-  | /*empty*/ {$$.token=NULL;$$.firstChild=NULL;$$.nextSibling=NULL;}
+  | /*empty*/ {$$.token=NULL;$$.Child=NULL;$$.nextnode=NULL;}
   ;
 ExtDef : Specifier ExtDecList SEMI {
-  struct TreeNode *temp;
-  temp=bindSibling(&$3,NULL);
-  temp=bindSibling(&$2,temp);
-  temp=bindSibling(&$1,temp);
+  struct TreeData *temp;
+  temp=buildNode(&$3,NULL);
+  temp=buildNode(&$2,temp);
+  temp=buildNode(&$1,temp);
   $$.token="ExtDef";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | Specifier SEMI {
-    struct TreeNode *temp;
-    temp=bindSibling(&$2,NULL);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$2,NULL);
+    temp=buildNode(&$1,temp);
     $$.token="ExtDef";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   | Specifier FunDec CompSt{
-    struct TreeNode *temp;
-    temp=bindSibling(&$3,NULL);
-    temp=bindSibling(&$2,temp);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$3,NULL);
+    temp=buildNode(&$2,temp);
+    temp=buildNode(&$1,temp);
     $$.token="ExtDef";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 ExtDecList : VarDec {
-  struct TreeNode *temp;
-  temp=bindSibling(&$1,NULL);
+  struct TreeData *temp;
+  temp=buildNode(&$1,NULL);
   $$.token="ExtDecList";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | VarDec COMMA ExtDecList {
-    struct TreeNode *temp;
-    temp=bindSibling(&$3,NULL);
-    temp=bindSibling(&$2,temp);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$3,NULL);
+    temp=buildNode(&$2,temp);
+    temp=buildNode(&$1,temp);
     $$.token="ExtDecList";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 
 /*Specifiers*/
 Specifier : TYPE {
-  struct TreeNode *temp;
-  temp=bindSibling(&$1,NULL);
-  temp=bindParent(temp,NULL);
+  struct TreeData *temp;
+  temp=buildNode(&$1,NULL);
+  temp=buildParent(temp,NULL);
   $$.token="Specifier";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | StructSpecifier {
-    struct TreeNode *temp;
-    temp=bindSibling(&$1,NULL);
+    struct TreeData *temp;
+    temp=buildNode(&$1,NULL);
     $$.token="Specifier";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 StructSpecifier : STRUCT OptTag LC DefList RC {
-  struct TreeNode *temp;
-  temp=bindSibling(&$5,NULL);
-  temp=bindSibling(&$4,temp);
-  temp=bindSibling(&$3,temp);
-  temp=bindSibling(&$2,temp);
-  temp=bindSibling(&$1,temp);
+  struct TreeData *temp;
+  temp=buildNode(&$5,NULL);
+  temp=buildNode(&$4,temp);
+  temp=buildNode(&$3,temp);
+  temp=buildNode(&$2,temp);
+  temp=buildNode(&$1,temp);
   $$.token="StructSpecifier";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | STRUCT Tag {
-    struct TreeNode *temp;
-    temp=bindSibling(&$2,NULL);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$2,NULL);
+    temp=buildNode(&$1,temp);
     $$.token="StructSpecifier";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 OptTag : ID {
-  struct TreeNode *temp;
-  temp=bindSibling(&$1,NULL);
+  struct TreeData *temp;
+  temp=buildNode(&$1,NULL);
   $$.token="OptTag";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
-  | /*empty*/ {$$.token=NULL;$$.firstChild=NULL;$$.nextSibling=NULL;}
+  | /*empty*/ {$$.token=NULL;$$.Child=NULL;$$.nextnode=NULL;}
   ;
 Tag : ID {
-  struct TreeNode *temp;
-  temp=bindSibling(&$1,NULL);
+  struct TreeData *temp;
+  temp=buildNode(&$1,NULL);
   $$.token="Tag";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   ;
 
 /*Declarators*/
 VarDec : ID {
-  struct TreeNode *temp;
-  temp=bindSibling(&$1,NULL);
+  struct TreeData *temp;
+  temp=buildNode(&$1,NULL);
   $$.token="VarDec";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | VarDec LB INT RB {
-    struct TreeNode *temp;
-    temp=bindSibling(&$4,NULL);
-    temp=bindSibling(&$3,temp);
-    temp=bindSibling(&$2,temp);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$4,NULL);
+    temp=buildNode(&$3,temp);
+    temp=buildNode(&$2,temp);
+    temp=buildNode(&$1,temp);
     $$.token="VarDec";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 FunDec : ID LP VarList RP{
-  struct TreeNode *temp;
-  temp=bindSibling(&$4,NULL);
-  temp=bindSibling(&$3,temp);
-  temp=bindSibling(&$2,temp);
-  temp=bindSibling(&$1,temp);
+  struct TreeData *temp;
+  temp=buildNode(&$4,NULL);
+  temp=buildNode(&$3,temp);
+  temp=buildNode(&$2,temp);
+  temp=buildNode(&$1,temp);
   $$.token="FunDec";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | ID LP RP {
-    struct TreeNode *temp;
-    temp=bindSibling(&$3,NULL);
-    temp=bindSibling(&$2,temp);
-    temp=bindSibling(&$1,temp);
+    struct TreeData *temp;
+    temp=buildNode(&$3,NULL);
+    temp=buildNode(&$2,temp);
+    temp=buildNode(&$1,temp);
     $$.token="FunDec";
-    bindParent(&$$,temp);
+    buildParent(&$$,temp);
   }
   ;
 VarList : ParamDec COMMA VarList {
-  struct TreeNode *temp;
-  temp=bindSibling(&$3,NULL);
-  temp=bindSibling(&$2,temp);
-  temp=bindSibling(&$1,temp);
+  struct TreeData *temp;
+  temp=buildNode(&$3,NULL);
+  temp=buildNode(&$2,temp);
+  temp=buildNode(&$1,temp);
   $$.token="VarList";
-  bindParent(&$$,temp);
+  buildParent(&$$,temp);
 }
   | ParamDec{
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "VarList";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
 ParamDec : Specifier VarDec{
-  struct TreeNode *temp;
-  temp = bindSibling(&$2, NULL);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$2, NULL);
+  temp = buildNode(&$1, temp);
   $$.token = "ParamDec";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   ;
 
 /*Statements*/
 CompSt : LC DefList StmtList RC {
-  struct TreeNode *temp;
-  temp = bindSibling(&$4, NULL);
-  temp = bindSibling(&$3, temp);
-  temp = bindSibling(&$2, temp);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$4, NULL);
+  temp = buildNode(&$3, temp);
+  temp = buildNode(&$2, temp);
+  temp = buildNode(&$1, temp);
   $$.token = "CompSt";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   ;
 StmtList : Stmt StmtList {
-  struct TreeNode *temp;
-  temp = bindSibling(&$2, NULL);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$2, NULL);
+  temp = buildNode(&$1, temp);
   $$.token = "StmtList";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
-  | /*empty*/ {$$.token=NULL;$$.firstChild=NULL;$$.nextSibling=NULL;}
+  | /*empty*/ {$$.token=NULL;$$.Child=NULL;$$.nextnode=NULL;}
   ;
 Stmt : Exp SEMI {
-  struct TreeNode *temp;
-  temp = bindSibling(&$2, NULL);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$2, NULL);
+  temp = buildNode(&$1, temp);
   $$.token = "Stmt";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   | CompSt {
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "Stmt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | RETURN Exp SEMI {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Stmt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | IF LP Exp RP Stmt {
-    struct TreeNode *temp;
-    temp = bindSibling(&$4, NULL);
-    temp = bindSibling(&$3, temp);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$4, NULL);
+    temp = buildNode(&$3, temp);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Stmt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | IF LP Exp RP Stmt ELSE Stmt {
-    struct TreeNode *temp;
-    temp = bindSibling(&$7, NULL);
-    temp = bindSibling(&$6, temp);
-    temp = bindSibling(&$5, temp);
-    temp = bindSibling(&$4, temp);
-    temp = bindSibling(&$3, temp);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$7, NULL);
+    temp = buildNode(&$6, temp);
+    temp = buildNode(&$5, temp);
+    temp = buildNode(&$4, temp);
+    temp = buildNode(&$3, temp);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Stmt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | WHILE LP Exp RP Stmt {
-    struct TreeNode *temp;
-    temp = bindSibling(&$5, NULL);
-    temp = bindSibling(&$4, temp);
-    temp = bindSibling(&$3, temp);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$5, NULL);
+    temp = buildNode(&$4, temp);
+    temp = buildNode(&$3, temp);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Stmt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
 
 /*Local Definitions*/
 DefList : Def DefList {
-  struct TreeNode *temp;
-  temp = bindSibling(&$2, NULL);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$2, NULL);
+  temp = buildNode(&$1, temp);
   $$.token = "DefList";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
-  | /*empty*/ {$$.token=NULL,$$.firstChild=NULL,$$.nextSibling=NULL;}
+  | /*empty*/ {$$.token=NULL,$$.Child=NULL,$$.nextnode=NULL;}
   ;
 Def : Specifier DecList SEMI{
-  struct TreeNode *temp;
-  temp = bindSibling(&$3, NULL);
-  temp = bindSibling(&$2, temp);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$3, NULL);
+  temp = buildNode(&$2, temp);
+  temp = buildNode(&$1, temp);
   $$.token = "Def";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   ;
 DecList : Dec {
-  struct TreeNode *temp;
-  temp = bindSibling(&$1, NULL);
+  struct TreeData *temp;
+  temp = buildNode(&$1, NULL);
   $$.token = "DecList";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   | Dec COMMA DecList {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "DecList";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
 Dec : VarDec {
-  struct TreeNode *temp;
-  temp = bindSibling(&$1, NULL);
+  struct TreeData *temp;
+  temp = buildNode(&$1, NULL);
   $$.token = "Dec";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   | VarDec ASSIGNOP Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Dec";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
 
 /*Expressions*/
 Exp : Exp ASSIGNOP Exp {
-  struct TreeNode *temp;
-  temp = bindSibling(&$3, NULL);
-  temp = bindSibling(&$2, temp);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$3, NULL);
+  temp = buildNode(&$2, temp);
+  temp = buildNode(&$1, temp);
   $$.token = "Exp";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   | Exp AND Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp OR Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp RELOP Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp PLUS Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp MINUS Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp STAR Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp DIV Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | LP Exp RP {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | MINUS Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$2, NULL);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$2, NULL);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | NOT Exp{
-    struct TreeNode *temp;
-    temp = bindSibling(&$2, NULL);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$2, NULL);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | ID LP Args RP {
-    struct TreeNode *temp;
-    temp = bindSibling(&$4, NULL);
-    temp = bindSibling(&$3, temp);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$4, NULL);
+    temp = buildNode(&$3, temp);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | ID LP RP {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp LB Exp RB {
-    struct TreeNode *temp;
-    temp = bindSibling(&$4, NULL);
-    temp = bindSibling(&$3, temp);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$4, NULL);
+    temp = buildNode(&$3, temp);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | Exp DOT ID {
-    struct TreeNode *temp;
-    temp = bindSibling(&$3, NULL);
-    temp = bindSibling(&$2, temp);
-    temp = bindSibling(&$1, temp);
+    struct TreeData *temp;
+    temp = buildNode(&$3, NULL);
+    temp = buildNode(&$2, temp);
+    temp = buildNode(&$1, temp);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | ID {
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | INT {
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   | FLOAT {
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "Exp";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
 Args : Exp COMMA Args {
-  struct TreeNode *temp;
-  temp = bindSibling(&$3, NULL);
-  temp = bindSibling(&$2, temp);
-  temp = bindSibling(&$1, temp);
+  struct TreeData *temp;
+  temp = buildNode(&$3, NULL);
+  temp = buildNode(&$2, temp);
+  temp = buildNode(&$1, temp);
   $$.token = "Args";
-  bindParent(&$$, temp);
+  buildParent(&$$, temp);
 }
   | Exp {
-    struct TreeNode *temp;
-    temp = bindSibling(&$1, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$1, NULL);
     $$.token = "Args";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
   CompSt : error RC {
-    struct TreeNode *temp;
-    temp = bindSibling(&$2, NULL);
+    struct TreeData *temp;
+    temp = buildNode(&$2, NULL);
     $$.token = "Compt";
-    bindParent(&$$, temp);
+    buildParent(&$$, temp);
   }
   ;
   Exp : Exp LB error RB {
-      struct TreeNode *temp;
-      temp = bindSibling(&$4, NULL);
-      temp = bindSibling(&$2, temp);
-      temp = bindSibling(&$1, temp);
+      struct TreeData *temp;
+      temp = buildNode(&$4, NULL);
+      temp = buildNode(&$2, temp);
+      temp = buildNode(&$1, temp);
       $$.token = "Exp";
-      bindParent(&$$, temp);
+      buildParent(&$$, temp);
     }
     | error LP {
-      struct TreeNode *temp;
-      temp = bindSibling(&$2, NULL);
+      struct TreeData *temp;
+      temp = buildNode(&$2, NULL);
       $$.token = "Exp";
-      bindParent(&$$, temp);
+      buildParent(&$$, temp);
     }
     ;
   Stmt : error SEMI {
-      struct TreeNode *temp;
-      temp = bindSibling(&$2, NULL);
+      struct TreeData *temp;
+      temp = buildNode(&$2, NULL);
       $$.token = "Stmt";
-      bindParent(&$$, temp);
+      buildParent(&$$, temp);
     }
 %%
+#include"lex.yy.c"
 yyerror(char *msg)
 {
   errorJudge = 1;
-  fprintf(stderr, "Error type 2 at line %d:%s\n", yylineno, msg);  
+  printf(stderr, "Error type 2 at line %d:%s\n", yylineno, msg);
 }

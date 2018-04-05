@@ -1,16 +1,15 @@
 #include<stdio.h>
 #include<ctype.h>
 #include<stdbool.h>
-struct TreeNode {
-    int ival;
-    double dval;
+struct TreeData {
+    double dnum;
     char *value;
     char *token;
-    struct TreeNode *firstChild;
-    struct TreeNode *nextSibling;
+    struct TreeData *Child;
+    struct TreeData *nextnode;
     int lineno;
 };
-struct TreeNode *head;
+struct TreeData *head;
 
 bool is_token(char *name){
   if(isupper(name[1])==true){
@@ -20,35 +19,46 @@ bool is_token(char *name){
   }
 }
 
-void traverse(struct TreeNode *head,int depth){
-  struct TreeNode *child;
+int traverse(struct TreeData *head,int depth,int num){
+  struct TreeData *child;
   if(head->token!=NULL){
+    num++;
+    printf("%d  ",num);
     for(int i=0;i<depth;i++){
       printf("  ");
     }
     if(is_token(head->token)==true){
-      printf("%s\n",head->token);
+      if(head->token == "INT"){
+        printf("%s:%d\n", head->token, atoi(head->value));
+      }else if(head->token == "FLOAT"){
+        printf("%s:%.6f\n", head->token, head->dnum);
+      }else if(head->token == "ID"){
+        printf("%s: %s\n", head->token, head->value);
+      }else if(head->token == "TYPE"){
+        printf("%s: %s\n",head->token, head->value);
+      }else{
+        printf("%s\n", head->token);
+      }
     }else{
       printf("%s(%d)\n", head->token, head->lineno);
     }
-    if (head->firstChild!=NULL){
-      traverse(head->firstChild,depth+1);
     }
-    if(head->nextSibling!=NULL){
-      traverse(head->nextSibling,depth);
+    if (head->Child!=NULL){
+      num=traverse(head->Child,depth+1,num);
     }
+    if(head->nextnode!=NULL){
+      num=traverse(head->nextnode,depth,num);
   }
+  return num;
 }
-struct TreeNode* bindSibling(struct TreeNode * left, struct TreeNode * right){
-  struct TreeNode *temp = (struct TreeNode *)malloc(sizeof(struct TreeNode ));
+struct TreeData* buildNode(struct TreeData * left, struct TreeData * right){
+  struct TreeData *temp = (struct TreeData *)malloc(sizeof(struct TreeData ));
    *temp = *left;
-   temp->nextSibling = right;
-   //printf("bind sibling");
+   temp->nextnode = right;
    return temp;
 }
 
-struct TreeNode* bindParent(struct TreeNode *parent, struct TreeNode *child){
-  parent->firstChild = child;
-    return parent;
-   // printf("bind parent ");
+struct TreeData* buildParent(struct TreeData *parent, struct TreeData *child){
+  parent->Child = child;
+  return parent;
 }
