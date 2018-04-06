@@ -486,7 +486,7 @@ Args : Exp COMMA Args {
   CompSt : error RC {
     struct TreeData *temp;
     temp = buildNode(&$2, NULL);
-    $$.token = "Compt";
+    $$.token = "CompSt";
     buildParent(&$$, temp);
   }
   ;
